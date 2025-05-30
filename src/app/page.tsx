@@ -1,103 +1,132 @@
-import Image from "next/image";
+"use client";
+import Papa from "papaparse";
+import { useEffect, useState } from "react";
+import React from "react";
+
+interface Profile {
+  번호: string;
+  연령대: string;
+  성별: string;
+  지역: string;
+  포지션: string;
+  장르: string;
+  경력: string;
+  링크: string;
+}
+
+function getYoutubeEmbedUrl(url: string) {
+  if (!url) return null;
+  // Handle YouTube Shorts and normal links
+  const shortsMatch = url.match(/youtube\.com\/shorts\/([\w-]+)/);
+  if (shortsMatch) {
+    return `https://www.youtube.com/embed/${shortsMatch[1]}`;
+  }
+  const normalMatch = url.match(/youtube\.com\/watch\?v=([\w-]+)/);
+  if (normalMatch) {
+    return `https://www.youtube.com/embed/${normalMatch[1]}`;
+  }
+  return url;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [selected, setSelected] = useState<number[]>([]);
+  const [submitted, setSubmitted] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const [success, setSuccess] = useState<boolean>(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  useEffect(() => {
+    fetch("/ai_test_3.csv")
+      .then((res) => res.text())
+      .then((text) => {
+        const parsed = Papa.parse<Profile>(text, { header: true });
+        setProfiles(parsed.data.filter((p: Profile) => p.연령대));
+      });
+  }, []);
+
+  const handleSelect = (idx: number) => {
+    setSuccess(false);
+    setError("");
+    setSubmitted(false);
+    setSelected((prev) =>
+      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
+    );
+  };
+
+  const handleSubmit = async () => {
+    if (selected.length === 0) return;
+    setLoading(true);
+    setError("");
+    setSuccess(false);
+    try {
+      const res = await fetch("/api/submit-card", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serials: selected }),
+      });
+      if (!res.ok) throw new Error("Failed to submit");
+      setSuccess(true);
+      setSubmitted(true);
+      setSelected([]);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-neutral-100 flex flex-col items-center py-8">
+      <h1 className="text-3xl font-bold mb-8">원하는 후보를 선택 후 제출해주세요</h1>
+      {error && <div className="text-red-500 mb-4">{error}</div>}
+      {success && <div className="text-green-600 mb-4">선택하신 후보들의 연락처는 문자로 전달드리겠습니다</div>}
+      {!success && (
+        <>
+          <button
+            className={`mb-6 px-6 py-3 rounded bg-blue-500 text-white font-semibold shadow hover:bg-blue-600 transition-all duration-150 ${selected.length === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
+            disabled={loading || submitted || selected.length === 0}
+            onClick={handleSubmit}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            {loading ? "Submitting..." : submitted ? "Submitted" : `제출하기`}
+          </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 w-full max-w-6xl">
+            {profiles.map((profile, idx) => (
+              <div
+                key={idx}
+                className={`bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center border instagram-card transition-all duration-200 cursor-pointer select-none
+                  ${selected.includes(idx)
+                    ? "border-4 border-blue-600 ring-4 ring-blue-200 bg-blue-50 scale-105 shadow-2xl"
+                    : "border-neutral-200 hover:border-blue-400 hover:shadow-xl"}
+                `}
+                style={{ aspectRatio: "3/4" }}
+                onClick={() => handleSelect(idx)}
+              >
+                <div className="w-24 h-24 bg-gradient-to-tr from-pink-400 via-yellow-400 to-purple-500 rounded-full mb-4 flex items-center justify-center text-white text-3xl font-bold">
+                  <span>{profile.성별 === "남자" ? "👨" : "👩"}</span>
+                </div>
+                <div className="text-2xl font-bold mb-1">{profile.포지션 || "?"}</div>
+                <div className="text-lg font-semibold mb-1">{profile.연령대} {profile.성별}</div>
+                <div className="text-sm text-neutral-500 mb-2">{profile.지역}</div>
+                <div className="text-sm mb-1">장르: {profile.장르}</div>
+                <div className="text-sm mb-1">경력: {profile.경력}</div>
+                {profile.링크 && getYoutubeEmbedUrl(profile.링크) && (
+                  <div className="w-full aspect-video mt-4 rounded-lg overflow-hidden border border-neutral-200">
+                    <iframe
+                      src={getYoutubeEmbedUrl(profile.링크) || undefined}
+                      title="Profile Video"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full"
+                    ></iframe>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
