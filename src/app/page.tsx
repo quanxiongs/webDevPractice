@@ -79,9 +79,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-neutral-100 flex flex-col items-center py-4 sm:py-8">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center px-2">원하는 후보를 선택 후 제출해주세요</h1>
-      {error && <div className="text-red-500 mb-4 text-center px-2">{error}</div>}
-      {success && <div className="text-green-600 mb-4 text-center px-2">선택하신 후보들의 연락처는 문자로 전달드리겠습니다</div>}
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center px-2 text-neutral-900">원하는 후보를 선택 후 제출해주세요</h1>
+      {error && <div className="text-red-600 mb-4 text-center px-2 font-semibold">{error}</div>}
+      {success && <div className="text-green-700 mb-4 text-center px-2 font-semibold">선택하신 후보들의 연락처는 문자로 전달드리겠습니다</div>}
       {!success && (
         <>
           <div className="w-full max-w-6xl px-2 sm:px-0 sticky top-0 z-20 bg-neutral-100 pt-2 pb-2 sm:pt-4 sm:pb-4 flex justify-center shadow-sm">
@@ -108,11 +108,11 @@ export default function Home() {
                 <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-tr from-pink-400 via-yellow-400 to-purple-500 rounded-full mb-3 sm:mb-4 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold">
                   <span>{profile.성별 === "남자" ? "👨" : "👩"}</span>
                 </div>
-                <div className="text-xl sm:text-2xl font-bold mb-1 text-center break-keep">{profile.포지션 || "?"}</div>
-                <div className="text-base sm:text-lg font-semibold mb-1 text-center">{profile.연령대} {profile.성별}</div>
-                <div className="text-xs sm:text-sm text-neutral-500 mb-2 text-center break-keep">{profile.지역}</div>
-                <div className="text-xs sm:text-sm mb-1 text-center break-keep">장르: {profile.장르}</div>
-                <div className="text-xs sm:text-sm mb-1 text-center break-keep">경력: {profile.경력}</div>
+                <div className="text-xl sm:text-2xl font-bold mb-1 text-center break-keep text-neutral-900">{profile.포지션 || "?"}</div>
+                <div className="text-base sm:text-lg font-semibold mb-1 text-center text-neutral-800">{profile.연령대} {profile.성별}</div>
+                <div className="text-xs sm:text-sm mb-2 text-center break-keep text-neutral-700">{profile.지역}</div>
+                <div className="text-xs sm:text-sm mb-1 text-center break-keep text-neutral-800">장르: {profile.장르}</div>
+                <div className="text-xs sm:text-sm mb-1 text-center break-keep text-neutral-800">경력: {profile.경력}</div>
                 {profile.링크 && getYoutubeEmbedUrl(profile.링크) && (
                   <div className="w-full aspect-video mt-3 sm:mt-4 rounded-lg overflow-hidden border border-neutral-200">
                     <iframe
